@@ -21,9 +21,9 @@ func New(device Device, opts ...Option) *Display {
 		opt(&options)
 	}
 
-	outBuf := make([][]byte, device.Width())
-	for x := range outBuf {
-		outBuf[x] = make([]byte, device.Height())
+	outBuf := make([][]byte, device.Height())
+	for y := range outBuf {
+		outBuf[y] = make([]byte, device.Width())
 	}
 
 	d := &Display{
@@ -54,8 +54,6 @@ type Display struct {
 // Device is an abstraction that defines the capabilities that the display requires from
 // its actual device (hardware or otherwise).
 type Device interface {
-	SetPixel(x, y int, val byte) error
-	SetPixels(pixels [][]byte) error
 	SetPixelsUnsafe(pixels [][]byte)
 	SetBrightness(brightness byte)
 	Clear() error
@@ -70,7 +68,7 @@ type Device interface {
 // Results must be explicitly pushed to the device with Show.
 func (d *Display) SetPixel(x, y int, val byte) {
 	d.growBuffer(x, y)
-	d.buffer[x][y] = val
+	d.buffer[y][x] = val
 }
 
 // Fill fills the given rectable with the given value.
@@ -79,7 +77,7 @@ func (d *Display) Fill(x, y, width, height int, val byte) {
 	d.growBuffer(x+width, y+height)
 	for ix := 0; ix < width; ix++ {
 		for iy := 0; iy < height; iy++ {
-			d.buffer[x+ix][y+iy] = val
+			d.buffer[y+iy][x+ix] = val
 		}
 	}
 }
@@ -90,12 +88,31 @@ func (d *Display) ClearRect(x, y, width, height int) {
 	d.Fill(x, y, width, height, 0)
 }
 
+// SetBrightness configures the display's brightness.
+// 0 is off, 255 is maximum brightness.
+func (d *Display) SetBrightness(brightness byte) {
+	d.device.SetBrightness(brightness)
+}
+
+// SetFlip configures flipping for the display.
+func (d *Display) SetFlip(flipX, flipY bool) {
+	d.flipX = flipX
+	d.flipY = flipY
+}
+
+// SetScroll configures the scroll coordinate for the display. The contents of the buffer will
+// be passed to the device, starting at this location.
+func (d *Display) SetScroll(scrollX, scrollY int) {
+	d.scrollX = scrollX
+	d.scrollY = scrollY
+}
+
 // Show renders the current state of the display to the device. Scrolling and flipping are applied,
 // and the relevant subset of the display is sent to the device for actual rendering.
 func (d *Display) Show() {
-	for x, col := range d.outBuf {
-		for y := range col {
-			col[y] = d.getSourcePixel(x, y)
+	for y, row := range d.outBuf {
+		for x := range row {
+			row[x] = d.getSourcePixel(x, y)
 		}
 	}
 	d.device.SetPixelsUnsafe(d.outBuf)
@@ -130,11 +147,11 @@ func (d *Display) getSourcePixel(devX, devY int) byte {
 		return 0
 	}
 
-	return d.buffer[x][y]
+	return d.buffer[y][x]
 }
 
 // Clear clears the entire display.
 func (d *Display) Clear() {
 	d.resetBuffer()
-	d.device.Clear()
+	d.Show()
 }

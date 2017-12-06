@@ -4,9 +4,9 @@ package scrollphathd
 func (d *Display) resetBuffer() {
 	d.width = d.device.Width()
 	d.height = d.device.Height()
-	d.buffer = make([][]byte, d.width)
-	for x := range d.buffer {
-		d.buffer[x] = make([]byte, d.height)
+	d.buffer = make([][]byte, d.height)
+	for y := range d.buffer {
+		d.buffer[y] = make([]byte, d.width)
 	}
 }
 
@@ -21,18 +21,26 @@ func (d *Display) growBuffer(newX, newY int) {
 		return
 	}
 
-	if newY+1 > d.height {
-		for x, col := range d.buffer {
-			// Expand each column as needed
-			newCol := make([]byte, newY+1)
-			copy(newCol, col)
-			d.buffer[x] = newCol
+	newWidth, newHeight := d.width, d.height
+	if newX >= newWidth {
+		newWidth = newX + 1
+	}
+	if newY >= newHeight {
+		newHeight = newY + 1
+	}
+
+	if newWidth > d.width {
+		for y, row := range d.buffer {
+			// Expand each row as needed
+			newRow := make([]byte, newWidth)
+			copy(newRow, row)
+			d.buffer[y] = newRow
 		}
 	}
-	for x := d.width; x <= newX; x++ {
-		// Insert new columns as needed
-		d.buffer = append(d.buffer, make([]byte, newY+1))
+	for y := d.height - 1; y < newHeight; y++ {
+		// Append new rows as needed, of width x coord
+		d.buffer = append(d.buffer, make([]byte, newWidth))
 	}
-	d.width = newX + 1
-	d.height = newY + 1
+	d.width = newWidth
+	d.height = newHeight
 }

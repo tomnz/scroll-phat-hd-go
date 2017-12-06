@@ -69,17 +69,18 @@ func (s *ScrollPhatHD) SetPixel(x, y int, val byte) error {
 // SetPixels copies all of the given pixels at once to the internal buffer.
 // Dimensions of the incoming buffer are checked to ensure they match the width and height of
 // the device.
+// Note that the array should be indexed in row, col order.
 func (s *ScrollPhatHD) SetPixels(pixels [][]byte) error {
-	if len(pixels) != s.width {
-		return fmt.Errorf("received invalid buffer of width %d", len(pixels))
+	if len(pixels) != s.height {
+		return fmt.Errorf("received invalid buffer of height %d", len(pixels))
 	}
 
-	for x, col := range pixels {
-		if len(col) != s.height {
-			return fmt.Errorf("received invalid buffer with column %d of height %d", x, len(col))
+	for y, row := range pixels {
+		if len(row) != s.width {
+			return fmt.Errorf("received invalid buffer with row %d of width %d", y, len(row))
 		}
-		for y, val := range col {
-			s.buffer[x][y] = val
+		for x, val := range row {
+			s.buffer[y][x] = val
 		}
 	}
 	return nil
@@ -92,6 +93,7 @@ func (s *ScrollPhatHD) SetPixels(pixels [][]byte) error {
 // The dimensions of the incoming buffer are also not checked.
 // When the final values are written to the device via Show, the internal buffer is copied, so
 // this may increase safety some.
+// Note that the array should be indexed in row, col order.
 func (s *ScrollPhatHD) SetPixelsUnsafe(pixels [][]byte) {
 	s.buffer = pixels
 }
@@ -104,9 +106,9 @@ func (s *ScrollPhatHD) SetBrightness(brightness byte) {
 
 // Clear turns off all pixels on the device.
 func (s *ScrollPhatHD) Clear() error {
-	for _, col := range s.buffer {
-		for y := range col {
-			col[y] = 0
+	for _, row := range s.buffer {
+		for x := range row {
+			row[x] = 0
 		}
 	}
 
@@ -116,8 +118,8 @@ func (s *ScrollPhatHD) Clear() error {
 // Show renders the contents of the internal buffer to the device. Brightness is applied.
 func (s *ScrollPhatHD) Show() error {
 	output := make([]byte, 144)
-	for x, col := range s.buffer {
-		for y, val := range col {
+	for y, row := range s.buffer {
+		for x, val := range row {
 			output[s.pixelAddr(x, y)] = s.options.gamma[s.scaleVal(val)]
 		}
 	}
@@ -214,9 +216,9 @@ func (s *ScrollPhatHD) setup() error {
 		return err
 	}
 
-	s.buffer = make([][]byte, s.width)
-	for x := range s.buffer {
-		s.buffer[x] = make([]byte, s.height)
+	s.buffer = make([][]byte, s.height)
+	for y := range s.buffer {
+		s.buffer[y] = make([]byte, s.width)
 	}
 
 	return s.Clear()
