@@ -127,15 +127,15 @@ func TestFlip(t *testing.T) {
 // testDevice is a fake device that implements the Device interface to validate output.
 // It's designed to display a 3x3 area.
 type testDevice struct {
-	pixels [][]byte
+	buffer [][]byte
 }
 
-func (d *testDevice) Width() int                      { return 3 }
-func (d *testDevice) Height() int                     { return 3 }
-func (d *testDevice) SetPixelsUnsafe(pixels [][]byte) { d.pixels = pixels }
-func (d *testDevice) SetBrightness(brightness byte)   {}
-func (d *testDevice) Clear() error                    { return nil }
-func (d *testDevice) Show() error                     { return nil }
+func (d *testDevice) Width() int                    { return 3 }
+func (d *testDevice) Height() int                   { return 3 }
+func (d *testDevice) SetBuffer(buffer [][]byte)     { d.buffer = buffer }
+func (d *testDevice) SetBrightness(brightness byte) {}
+func (d *testDevice) Clear() error                  { return nil }
+func (d *testDevice) Show() error                   { return nil }
 
 func getDisplay(opts ...scrollphathd.Option) (*testDevice, *scrollphathd.Display) {
 	dev := &testDevice{}
@@ -143,7 +143,7 @@ func getDisplay(opts ...scrollphathd.Option) (*testDevice, *scrollphathd.Display
 }
 
 func (d *testDevice) checkPixels(t *testing.T, expected [][]byte) {
-	for y, row := range d.pixels {
+	for y, row := range d.buffer {
 		for x, val := range row {
 			if val != expected[y][x] {
 				t.Fatalf("value at (%d, %d) was different (%d) than expected (%d)", x, y, val, expected[y][x])
