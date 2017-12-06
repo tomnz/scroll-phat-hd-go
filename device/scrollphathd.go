@@ -86,7 +86,7 @@ func (s *ScrollPhatHD) SetPixels(pixels [][]byte) error {
 	return nil
 }
 
-// SetPixelsUnsafe allows setting all of the pixels at once by swapping out the internal buffer.
+// SetBuffer allows setting all of the pixels at once by swapping out the internal buffer.
 // This does NOT copy any of the data. This is exposed for performance reasons, but caution should
 // be exercised! If the buffer is later updated externally, the contents of the internal buffer
 // will also change!
@@ -94,8 +94,8 @@ func (s *ScrollPhatHD) SetPixels(pixels [][]byte) error {
 // When the final values are written to the device via Show, the internal buffer is copied, so
 // this may increase safety some.
 // Note that the array should be indexed in row, col order.
-func (s *ScrollPhatHD) SetPixelsUnsafe(pixels [][]byte) {
-	s.buffer = pixels
+func (s *ScrollPhatHD) SetBuffer(buffer [][]byte) {
+	s.buffer = buffer
 }
 
 // SetBrightness sets the brightness of the device. This is applied to all pixels on Show.

@@ -45,7 +45,7 @@ type Display struct {
 	flipX, flipY bool
 
 	// We maintain the output buffer for the device ourselves, to reduce the amount of
-	// memory allocation that goes on
+	// memory allocation and copying that goes on
 	outBuf [][]byte
 
 	// TODO: Make this goroutine-safe? Would involve wrapping any buffer operations with a mutex.
@@ -54,38 +54,12 @@ type Display struct {
 // Device is an abstraction that defines the capabilities that the display requires from
 // its actual device (hardware or otherwise).
 type Device interface {
-	SetPixelsUnsafe(pixels [][]byte)
+	SetBuffer(buffer [][]byte)
 	SetBrightness(brightness byte)
 	Clear() error
 	Show() error
 	Width() int
 	Height() int
-}
-
-// TODO: Implement text and graphing methods for parity with Python lib
-
-// SetPixel sets the given coordinate to the given value.
-// Results must be explicitly pushed to the device with Show.
-func (d *Display) SetPixel(x, y int, val byte) {
-	d.growBuffer(x, y)
-	d.buffer[y][x] = val
-}
-
-// Fill fills the given rectable with the given value.
-// Results must be explicitly pushed to the device with Show.
-func (d *Display) Fill(x, y, width, height int, val byte) {
-	d.growBuffer(x+width, y+height)
-	for ix := 0; ix < width; ix++ {
-		for iy := 0; iy < height; iy++ {
-			d.buffer[y+iy][x+ix] = val
-		}
-	}
-}
-
-// ClearRect clears the given rectangle.
-// Results must be explicitly pushed to the device with Show.
-func (d *Display) ClearRect(x, y, width, height int) {
-	d.Fill(x, y, width, height, 0)
 }
 
 // SetBrightness configures the display's brightness.
@@ -115,7 +89,7 @@ func (d *Display) Show() {
 			row[x] = d.getSourcePixel(x, y)
 		}
 	}
-	d.device.SetPixelsUnsafe(d.outBuf)
+	d.device.SetBuffer(d.outBuf)
 	d.device.Show()
 }
 
@@ -130,7 +104,7 @@ func (d *Display) getSourcePixel(devX, devY int) byte {
 	}
 
 	// Fail early if x is nonsense
-	if x >= d.width {
+	if x < 0 || x >= d.width {
 		return 0
 	}
 
@@ -143,7 +117,7 @@ func (d *Display) getSourcePixel(devX, devY int) byte {
 		y = d.height - y - 1
 	}
 
-	if y >= d.height {
+	if y < 0 || y >= d.height {
 		return 0
 	}
 
