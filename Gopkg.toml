@@ -1,0 +1,3 @@
+[[constraint]]
+  name = "periph.io/x/periph"
+  version = "2.0.0"
