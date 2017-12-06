@@ -11,7 +11,7 @@ package scrollphathd
 //	_, _ := host.Init()
 //	bus, _ := i2creg.Open("1")
 //	device, _ := device.New(bus)
-//  display := scrollphathd.New(device)
+//	display := scrollphathd.New(device)
 //
 // Because the device is an interface, it will also accept mocks, or alternative output
 // implementations.
@@ -56,7 +56,6 @@ type Display struct {
 type Device interface {
 	SetBuffer(buffer [][]byte)
 	SetBrightness(brightness byte)
-	Clear() error
 	Show() error
 	Width() int
 	Height() int
@@ -74,11 +73,16 @@ func (d *Display) SetFlip(flipX, flipY bool) {
 	d.flipY = flipY
 }
 
-// SetScroll configures the scroll coordinate for the display. The contents of the buffer will
-// be passed to the device, starting at this location.
-func (d *Display) SetScroll(scrollX, scrollY int) {
+// ScrollTo configures the top left coordinate to use from the buffer for display.
+func (d *Display) ScrollTo(scrollX, scrollY int) {
 	d.scrollX = scrollX
 	d.scrollY = scrollY
+}
+
+// Scroll scrolls the buffer relative to its current position.
+func (d *Display) Scroll(deltaX, deltaY int) {
+	d.scrollX += deltaX
+	d.scrollY += deltaY
 }
 
 // Show renders the current state of the display to the device. Scrolling and flipping are applied,

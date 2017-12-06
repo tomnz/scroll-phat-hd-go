@@ -1,10 +1,11 @@
 # Scroll pHAT HD Go library
 
-Provides a Go implementation for interfacing with Pimoroni's [Scroll pHAT HD](https://shop.pimoroni.com/products/scroll-phat-hd).
+Provides a Go implementation for interfacing with Pimoroni's [Scroll pHAT HD](https://shop.pimoroni.com/products/scroll-phat-hd). The top-level library provides a lot of the same functionality as the reference [Python library](http://docs.pimoroni.com/scrollphathd/), including:
 
-The top-level library provides a lot of the same functionality as the reference [Python library](http://docs.pimoroni.com/scrollphathd/), including:
-
-* Scrolling, flipping and tiling, based on an internal display buffer.
+* An internal display buffer that automatically expands as needed.
+* Scrolling.
+* Flipping.
+* Tiling.
 
 Coming soon:
 
