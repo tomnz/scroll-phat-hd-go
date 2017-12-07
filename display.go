@@ -1,22 +1,40 @@
 package scrollphathd
 
-// New instantiates a new Scroll pHAT HD display, using the supplied device and options.
-// Typical usage will be to provide a hardware device. For example (include error handling!)
+import (
+	"periph.io/x/periph/conn/i2c"
+)
+
+// New instantiates a new Scroll pHAT HD display, the supplied options. This method requires
+// an I2C bus to be supplied, which will be used to connect to the actual hardware device.
+// For example:
 //
 //	import (
-//		"github.com/tomnz/scroll-phat-hd-go/device"
+//		"github.com/tomnz/scroll-phat-hd-go"
 //		"periph.io/x/periph/conn/i2c/i2creg"
 //		"periph.io/x/periph/host"
 //	)
 //	_, _ := host.Init()
 //	bus, _ := i2creg.Open("1")
-//	device, _ := device.New(bus)
-//	display := scrollphathd.New(device)
+//	display, _ := scrollphathd.New(bus)
 //
-// Because the device is an interface, it will also accept mocks, or alternative output
-// implementations.
-func New(device Device, opts ...Option) *Display {
-	options := defaultOptions
+func New(bus i2c.Bus, opts ...DisplayOption) (*Display, error) {
+	device, err := NewDriver(bus)
+	if err != nil {
+		return nil, err
+	}
+	disp := NewWithDevice(device, opts...)
+	return disp, nil
+}
+
+// NewWithDevice instantiates a new Scroll pHAT HD display, using the supplied device and
+// options. For using the standard I2C hardware device, you likely want to just use New
+// instead.
+// This constructor is useful for passing a non-standard device implementation, such as a
+// mock or terminal emulator.
+// You can also override some of the options for the standard driver by declaring it first,
+// then passing it to this constructor.
+func NewWithDevice(device Device, opts ...DisplayOption) *Display {
+	options := defaultDisplayOptions
 	for _, opt := range opts {
 		opt(&options)
 	}
@@ -35,9 +53,9 @@ func New(device Device, opts ...Option) *Display {
 	return d
 }
 
-// Display is the core struct that manages the display state.
+// Display is the primary struct for interacting with the Scroll pHAT HD device.
 type Display struct {
-	options options
+	options displayOptions
 	device  Device
 	buffer  [][]byte
 	width, height,

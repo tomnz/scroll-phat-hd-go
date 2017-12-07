@@ -1,4 +1,4 @@
-package device
+package scrollphathd
 
 const (
 	devWidth  = 17

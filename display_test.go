@@ -6,7 +6,7 @@ import (
 	"github.com/tomnz/scroll-phat-hd-go"
 )
 
-func TestBasic(t *testing.T) {
+func TestDisplay_Basic(t *testing.T) {
 	// Set one pixel - it shouldn't tile, so that should be the only pixel displayed
 	dev, disp := getDisplay()
 	disp.SetPixel(0, 0, 1)
@@ -25,7 +25,7 @@ func TestBasic(t *testing.T) {
 	})
 }
 
-func TestFill(t *testing.T) {
+func TestDisplay_Fill(t *testing.T) {
 	dev, disp := getDisplay()
 	disp.Fill(1, 1, 3, 3, 1)
 	disp.Show()
@@ -36,7 +36,7 @@ func TestFill(t *testing.T) {
 	})
 }
 
-func TestScroll(t *testing.T) {
+func TestDisplay_Scroll(t *testing.T) {
 	// Set a pixel outside the frame - buffer should dynamically resize, and nothing
 	// should be displayed
 	dev, disp := getDisplay()
@@ -49,7 +49,7 @@ func TestScroll(t *testing.T) {
 	})
 
 	// Pixel should move left two and up one, from the bottom right corner
-	disp.SetScroll(2, 1)
+	disp.ScrollTo(2, 1)
 	disp.Show()
 	dev.checkPixels(t, [][]byte{
 		{0, 0, 0},
@@ -58,7 +58,7 @@ func TestScroll(t *testing.T) {
 	})
 }
 
-func TestTile(t *testing.T) {
+func TestDisplay_Tile(t *testing.T) {
 	dev, disp := getDisplay()
 	disp.SetPixel(0, 0, 1)
 	disp.SetPixel(1, 1, 2)
@@ -66,7 +66,7 @@ func TestTile(t *testing.T) {
 	disp.SetPixel(3, 1, 4)
 
 	// Scroll several tiles forward
-	disp.SetScroll(7, 0)
+	disp.ScrollTo(7, 0)
 	disp.Show()
 	dev.checkPixels(t, [][]byte{
 		{0, 1, 0},
@@ -80,7 +80,7 @@ func TestTile(t *testing.T) {
 	disp.SetPixel(1, 1, 2)
 	disp.SetPixel(2, 2, 3)
 	disp.SetPixel(3, 1, 4)
-	disp.SetScroll(7, 0)
+	disp.ScrollTo(7, 0)
 	disp.Show()
 	dev.checkPixels(t, [][]byte{
 		{0, 0, 0},
@@ -89,7 +89,7 @@ func TestTile(t *testing.T) {
 	})
 }
 
-func TestFlip(t *testing.T) {
+func TestDisplay_Flip(t *testing.T) {
 	dev, disp := getDisplay()
 	disp.SetPixel(0, 0, 1)
 	disp.SetPixel(1, 1, 2)
@@ -115,7 +115,7 @@ func TestFlip(t *testing.T) {
 	})
 
 	// Try it with scrolling
-	disp.SetScroll(7, 0)
+	disp.ScrollTo(7, 0)
 	disp.Show()
 	dev.checkPixels(t, [][]byte{
 		{0, 0, 3},
@@ -137,9 +137,9 @@ func (d *testDevice) SetBrightness(brightness byte) {}
 func (d *testDevice) Clear() error                  { return nil }
 func (d *testDevice) Show() error                   { return nil }
 
-func getDisplay(opts ...scrollphathd.Option) (*testDevice, *scrollphathd.Display) {
+func getDisplay(opts ...scrollphathd.DisplayOption) (*testDevice, *scrollphathd.Display) {
 	dev := &testDevice{}
-	return dev, scrollphathd.New(dev, opts...)
+	return dev, scrollphathd.NewWithDevice(dev, opts...)
 }
 
 func (d *testDevice) checkPixels(t *testing.T, expected [][]byte) {

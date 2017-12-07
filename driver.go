@@ -1,4 +1,4 @@
-package device
+package scrollphathd
 
 import (
 	"fmt"
@@ -9,9 +9,10 @@ import (
 	"periph.io/x/periph/devices"
 )
 
-// New returns a new Scroll pHAT HD hardware device.
-func New(bus i2c.Bus, opts ...Option) (*ScrollPhatHD, error) {
-	options := defaultOptions
+// NewDriver returns a new Scroll pHAT HD hardware driver. This implements the Device
+// interface, and can be used by Display.
+func NewDriver(bus i2c.Bus, opts ...DriverOption) (*Driver, error) {
+	options := defaultDriverOptions
 	for _, opt := range opts {
 		opt(&options)
 	}
@@ -21,7 +22,7 @@ func New(bus i2c.Bus, opts ...Option) (*ScrollPhatHD, error) {
 		width, height = devHeight, devWidth
 	}
 
-	d := &ScrollPhatHD{
+	d := &Driver{
 		options:    options,
 		i2c:        &i2c.Dev{Bus: bus, Addr: addr},
 		brightness: 255,
@@ -32,9 +33,11 @@ func New(bus i2c.Bus, opts ...Option) (*ScrollPhatHD, error) {
 	return d, nil
 }
 
-// ScrollPhatHD is a handle to a scrollphathd device.
-type ScrollPhatHD struct {
-	options options
+// Driver handles low level communication with a Scroll pHAT HD hardware device. It can
+// be used directly if you do not have need for some of the higher-level features of the
+// Display object.
+type Driver struct {
+	options driverOptions
 	// Device handle for I2C bus
 	i2c conn.Conn
 	// Hardware frame currently in use
@@ -45,17 +48,17 @@ type ScrollPhatHD struct {
 }
 
 // Width returns the width of the device in pixels.
-func (s *ScrollPhatHD) Width() int {
+func (s *Driver) Width() int {
 	return s.width
 }
 
 // Height returns the height of the device in pixels.
-func (s *ScrollPhatHD) Height() int {
+func (s *Driver) Height() int {
 	return s.height
 }
 
 // SetPixel sets the pixel at the given coordinate to the given value.
-func (s *ScrollPhatHD) SetPixel(x, y int, val byte) error {
+func (s *Driver) SetPixel(x, y int, val byte) error {
 	if x < 0 || x > s.width-1 {
 		return fmt.Errorf("received invalid x coordinate %d", x)
 	}
@@ -70,7 +73,7 @@ func (s *ScrollPhatHD) SetPixel(x, y int, val byte) error {
 // Dimensions of the incoming buffer are checked to ensure they match the width and height of
 // the device.
 // Note that the array should be indexed in row, col order.
-func (s *ScrollPhatHD) SetPixels(pixels [][]byte) error {
+func (s *Driver) SetPixels(pixels [][]byte) error {
 	if len(pixels) != s.height {
 		return fmt.Errorf("received invalid buffer of height %d", len(pixels))
 	}
@@ -94,18 +97,18 @@ func (s *ScrollPhatHD) SetPixels(pixels [][]byte) error {
 // When the final values are written to the device via Show, the internal buffer is copied, so
 // this may increase safety some.
 // Note that the array should be indexed in row, col order.
-func (s *ScrollPhatHD) SetBuffer(buffer [][]byte) {
+func (s *Driver) SetBuffer(buffer [][]byte) {
 	s.buffer = buffer
 }
 
 // SetBrightness sets the brightness of the device. This is applied to all pixels on Show.
 // 0 is off, 255 is maximum brightness.
-func (s *ScrollPhatHD) SetBrightness(brightness byte) {
+func (s *Driver) SetBrightness(brightness byte) {
 	s.brightness = brightness
 }
 
 // Clear turns off all pixels on the device.
-func (s *ScrollPhatHD) Clear() error {
+func (s *Driver) Clear() error {
 	for _, row := range s.buffer {
 		for x := range row {
 			row[x] = 0
@@ -116,7 +119,7 @@ func (s *ScrollPhatHD) Clear() error {
 }
 
 // Show renders the contents of the internal buffer to the device. Brightness is applied.
-func (s *ScrollPhatHD) Show() error {
+func (s *Driver) Show() error {
 	output := make([]byte, 144)
 	for y, row := range s.buffer {
 		for x, val := range row {
@@ -151,13 +154,13 @@ func (s *ScrollPhatHD) Show() error {
 }
 
 // scaleVal applies brightness to the given value.
-func (s *ScrollPhatHD) scaleVal(val byte) byte {
+func (s *Driver) scaleVal(val byte) byte {
 	return byte(uint16(val) * uint16(s.brightness) / 255)
 }
 
 // pixelAddr maps an x, y coordinate to the physical LED index that should be updated, after rotating
 // the coordinates.
-func (s *ScrollPhatHD) pixelAddr(x, y int) int {
+func (s *Driver) pixelAddr(x, y int) int {
 	switch s.options.rotation {
 	case Rotation0:
 	case Rotation90:
@@ -181,7 +184,7 @@ func (s *ScrollPhatHD) pixelAddr(x, y int) int {
 }
 
 // setup performs initial setup of the I2C hardware device by sending initialization messages.
-func (s *ScrollPhatHD) setup() error {
+func (s *Driver) setup() error {
 	if err := s.reset(); err != nil {
 		return err
 	}
@@ -225,7 +228,7 @@ func (s *ScrollPhatHD) setup() error {
 }
 
 // reset reboots the hardware device.
-func (s *ScrollPhatHD) reset() error {
+func (s *Driver) reset() error {
 	if err := s.writeRegister(regShutdown, 0); err != nil {
 		return err
 	}
@@ -235,7 +238,7 @@ func (s *ScrollPhatHD) reset() error {
 
 // writeRegister writes the corresponding value into the given register in the configuration bank
 // on the device.
-func (s *ScrollPhatHD) writeRegister(register, value byte) error {
+func (s *Driver) writeRegister(register, value byte) error {
 	if err := s.bank(configBank); err != nil {
 		return err
 	}
@@ -244,20 +247,20 @@ func (s *ScrollPhatHD) writeRegister(register, value byte) error {
 
 // bank switches the active bank on the device. The device uses multiple banks to multiplex the
 // amount of data that it needs to access.
-func (s *ScrollPhatHD) bank(bank byte) error {
+func (s *Driver) bank(bank byte) error {
 	return s.write(bankAddr, bank)
 }
 
-func (s *ScrollPhatHD) write(cmd byte, value ...byte) error {
+func (s *Driver) write(cmd byte, value ...byte) error {
 	msg := []byte{cmd}
 	msg = append(msg, value...)
 	return s.i2c.Tx(msg, nil)
 }
 
 // Halt implements devices.Device.
-func (s *ScrollPhatHD) Halt() error {
+func (s *Driver) Halt() error {
 	return s.writeRegister(regShutdown, 0)
 }
 
 // Ensure the device actually implements the periph.io interface.
-var _ devices.Device = &ScrollPhatHD{}
+var _ devices.Device = &Driver{}

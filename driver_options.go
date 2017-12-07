@@ -1,14 +1,14 @@
-package device
+package scrollphathd
 
 import "fmt"
 
-// Option allows specifying behavior for the device.
-type Option func(*options)
+// DriverOption allows specifying behavior for the driver.
+type DriverOption func(*driverOptions)
 
-// WithGamma allows overriding the gamma curve for the device. Must include 256
+// WithGamma allows overriding the gamma curve for the driver. Must include 256
 // level mappings.
-func WithGamma(gamma []byte) Option {
-	return func(options *options) {
+func WithGamma(gamma []byte) DriverOption {
+	return func(options *driverOptions) {
 		if len(gamma) != 256 {
 			panic("Must pass 256 gamma levels")
 		}
@@ -33,8 +33,8 @@ const (
 // WithRotation applies rotation to the internal buffer before pushing pixels to the device.
 // Note that this can alter the final width/height of the device. If you need to dynamically check
 // these values, use the Width and Height functions.
-func WithRotation(rotation Rotation) Option {
-	return func(options *options) {
+func WithRotation(rotation Rotation) DriverOption {
+	return func(options *driverOptions) {
 		if rotation != Rotation0 && rotation != Rotation90 && rotation != Rotation180 && rotation != Rotation270 {
 			panic(fmt.Sprintf("received invalid rotation %d - must be a right angle", rotation))
 		}
@@ -42,12 +42,12 @@ func WithRotation(rotation Rotation) Option {
 	}
 }
 
-type options struct {
+type driverOptions struct {
 	gamma    []byte
 	rotation Rotation
 }
 
-var defaultOptions = options{
+var defaultDriverOptions = driverOptions{
 	gamma:    defaultGamma,
 	rotation: Rotation0,
 }
