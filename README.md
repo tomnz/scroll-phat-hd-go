@@ -12,8 +12,12 @@ Coming soon:
 * Text rendering.
 * Graph rendering.
 
-This library separates the higher-level rendering functionality from the lower-level hardware driver in the `device` package. Projects may use the driver directly if they do not require the rendering helpers.
+## Overview
 
-The device driver itself depends on the excellent [periph.io](https://periph.io) framework for communication with the I2C bus - make sure you've made it available in your Go path with `dep ensure`, or `go get -u periph.io/x/periph`.
+The library depends on the [periph.io](https://periph.io) framework for low level device communication. There are two primary ways that the library allows you to interact with the device:
+
+Display wraps the Driver (or any other struct providing appropriate functionality), and extends it with the higher level capabilities described above, such as an auto-expanding internal buffer, scrolling, flipping, etc. In most cases, the Display offers a safer and more fully-featured way to interact with the device.
+
+Driver abstracts the low level I2C hardware device, and handles all communication. This does include some basic drawing functionality such as SetPixel, SetBrightness, and support for rotation. It's possible to use the Driver directly in your projects - this can be particularly useful in performance-critical situations where you want to incur minimum overhead in memory usage and copying.
 
 Please refer to the [godocs](https://godoc.org/github.com/tomnz/scroll-phat-hd-go) for full API reference.
