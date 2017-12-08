@@ -142,17 +142,11 @@ func (s *Driver) Show() error {
 		return err
 	}
 
-	// Write the pixel data in chunks
-	offset := byte(0)
-	for len(output) > chunkSize {
-		if err := s.write(offsetColor+offset, output[:chunkSize]...); err != nil {
-			return err
-		}
-		output = output[chunkSize:]
-		offset += chunkSize
-	}
-	// Write rest
-	if err := s.write(offsetColor+offset, output...); err != nil {
+	// Write the pixel data
+	// NOTE: Because we use the I2C bus directly (instead of via the SMBus subset) we can
+	// send all of the data at once, rather than chunking. This makes the data write atomic
+	// over the bus, eliminating the chance for someone else to interfere mid way.
+	if err := s.write(offsetColor, output...); err != nil {
 		return err
 	}
 	// Switch the active frame to the new frame

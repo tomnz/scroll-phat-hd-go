@@ -7,9 +7,6 @@ const (
 	// I2C hardware address.
 	addr uint16 = 0x74
 
-	// Size of chunks to send to the device when making bulk I2C writes.
-	chunkSize = 32
-
 	regMode      byte = 0x00
 	regFrame     byte = 0x01
 	regAutoplay1 byte = 0x02
