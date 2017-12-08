@@ -10,8 +10,16 @@ import (
 )
 
 // NewDriver returns a new Scroll pHAT HD hardware driver. This implements the Device
-// interface, and can be used by Display.
+// interface, and can be used by Display. Connects to the device on the given I2C bus
+// at its standard address.
 func NewDriver(bus i2c.Bus, opts ...DriverOption) (*Driver, error) {
+	return NewDriverWithConn(&i2c.Dev{Bus: bus, Addr: addr}, opts...)
+}
+
+// NewDriverWithConn returns a new Scroll pHAT HD hardware driver, using the given periph.io
+// conn.Conn object. Typically NewDriver should be used instead, but this may be useful for
+// testing using mocks, or a custom I2C connection with a different address than the default.
+func NewDriverWithConn(periphConn conn.Conn, opts ...DriverOption) (*Driver, error) {
 	options := defaultDriverOptions
 	for _, opt := range opts {
 		opt(&options)
@@ -24,12 +32,14 @@ func NewDriver(bus i2c.Bus, opts ...DriverOption) (*Driver, error) {
 
 	d := &Driver{
 		options:    options,
-		i2c:        &i2c.Dev{Bus: bus, Addr: addr},
+		i2c:        periphConn,
 		brightness: 255,
 		width:      width,
 		height:     height,
 	}
-	d.setup()
+	if err := d.setup(); err != nil {
+		return nil, err
+	}
 	return d, nil
 }
 
