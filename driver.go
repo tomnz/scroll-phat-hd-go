@@ -75,7 +75,7 @@ func (s *Driver) SetPixel(x, y int, val byte) error {
 	if y < 0 || y > s.height-1 {
 		return fmt.Errorf("received invalid y coordinate %d", y)
 	}
-	s.buffer[x][y] = val
+	s.buffer[y][x] = val
 	return nil
 }
 
