@@ -2,6 +2,7 @@ package scrollphathd
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"periph.io/x/periph/conn"
@@ -133,6 +134,7 @@ func (s *Driver) Show() error {
 	output := make([]byte, 144)
 	for y, row := range s.buffer {
 		for x, val := range row {
+			log.Printf("%d, %d, %d\n", x, y, s.pixelAddr(x, y))
 			output[s.pixelAddr(x, y)] = s.options.gamma[s.scaleVal(val)]
 		}
 	}
@@ -177,7 +179,7 @@ func (s *Driver) pixelAddr(x, y int) int {
 		panic("unknown rotation")
 	}
 
-	y = s.height - y - 1
+	y = devHeight - y - 1
 	if x > 8 {
 		x -= 8
 		y = -y - 2
