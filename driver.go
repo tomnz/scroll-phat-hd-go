@@ -2,7 +2,6 @@ package scrollphathd
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"periph.io/x/periph/conn"
@@ -134,7 +133,6 @@ func (s *Driver) Show() error {
 	output := make([]byte, 144)
 	for y, row := range s.buffer {
 		for x, val := range row {
-			log.Printf("%d, %d, %d\n", x, y, s.pixelAddr(x, y))
 			output[s.pixelAddr(x, y)] = s.options.gamma[s.scaleVal(val)]
 		}
 	}
