@@ -130,7 +130,8 @@ func (s *Driver) Clear() error {
 
 // Show renders the contents of the internal buffer to the device. Brightness is applied.
 func (s *Driver) Show() error {
-	output := make([]byte, 144)
+	// Maximum addressed LED is 134
+	output := make([]byte, 135)
 	for y, row := range s.buffer {
 		for x, val := range row {
 			output[s.pixelAddr(x, y)] = s.options.gamma[s.scaleVal(val)]
