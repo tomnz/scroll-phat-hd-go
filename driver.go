@@ -92,9 +92,7 @@ func (s *Driver) SetPixels(pixels [][]byte) error {
 		if len(row) != s.width {
 			return fmt.Errorf("received invalid buffer with row %d of width %d", y, len(row))
 		}
-		for x, val := range row {
-			s.buffer[y][x] = val
-		}
+		copy(s.buffer[y], row)
 	}
 	return nil
 }

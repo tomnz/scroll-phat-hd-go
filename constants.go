@@ -7,28 +7,29 @@ const (
 	// I2C hardware address.
 	addr uint16 = 0x74
 
-	regMode      byte = 0x00
-	regFrame     byte = 0x01
-	regAutoplay1 byte = 0x02
-	regAutoplay2 byte = 0x03
-	regBlink     byte = 0x05
+	// Some constants are not used - commented
+	regMode  byte = 0x00
+	regFrame byte = 0x01
+	// regAutoplay1 byte = 0x02
+	// regAutoplay2 byte = 0x03
+	// regBlink     byte = 0x05
 	regAudioSync byte = 0x06
-	regBreath1   byte = 0x08
-	regBreath2   byte = 0x09
-	regShutdown  byte = 0x0a
-	regGain      byte = 0x0b
-	regAdc       byte = 0x0c
+	// regBreath1   byte = 0x08
+	// regBreath2   byte = 0x09
+	regShutdown byte = 0x0a
+	// regGain      byte = 0x0b
+	// regAdc       byte = 0x0c
 
 	configBank byte = 0x0b
 	bankAddr   byte = 0xfd
 
-	modePicture   byte = 0x00
-	modeAutoplay  byte = 0x08
-	modeAudioplay byte = 0x18
+	modePicture byte = 0x00
+	// modeAutoplay  byte = 0x08
+	// modeAudioplay byte = 0x18
 
 	offsetEnable byte = 0x00
-	offsetBlink  byte = 0x12
-	offsetColor  byte = 0x24
+	// offsetBlink  byte = 0x12
+	offsetColor byte = 0x24
 )
 
 var (
