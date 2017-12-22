@@ -35,7 +35,7 @@ The library depends on the [periph.io](https://periph.io) framework for low leve
 
 ```bash
 go get -u github.com/golang/dep/cmd/dep
-cd $GOPATH/src/github.com/tomnz/scroll-phat-hd
+cd $GOPATH/src/github.com/tomnz/scroll-phat-hd-go
 dep ensure
 ```
 
