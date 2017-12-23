@@ -23,6 +23,12 @@ There are two primary ways that the library allows you to interact with the devi
 
 `Driver` abstracts the low-level I2C hardware device, and handles all communication. This does include some basic drawing functionality such as `SetPixel`, `SetBrightness`, and support for rotation. It's possible to use the `Driver` directly in your projects - this can be particularly useful in performance-critical situations where you want to incur minimum overhead in memory usage and copying.
 
+## Projects
+
+Some example projects that take advantage of this library:
+
+* [sparklestick](https://github.com/tomnz/sparklestick)
+
 ## Installation
 
 First, clone the project into your GOPATH:
